@@ -1,0 +1,21 @@
+version: "3.7"
+services:
+
+  alpinedev:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: "alpinedev"
+    restart: unless-stopped
+    stdin_open: true
+    env_file:
+      - secrets.env
+    environment:
+      - PUID=${UID:-1000}
+      - PGID=${GID:-1000}
+    volumes:
+      - ./src:/config/src
+      - ./keys:/config/.abuild
+      - ./build:/config/build 
+    ports:
+      - "9922:22/tcp"

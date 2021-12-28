@@ -1,0 +1,60 @@
+#!/bin/zsh
+
+echo -e "[users]\t\tSetting up 'apkdev'\n"
+
+# setup user from input IDs
+PUID=${PUID:-1005}
+PGID=${PGID:-1005}
+groupmod -o -g "$PGID" apkdev
+usermod -o -u "$PUID" apkdev
+
+# setting passwords
+echo "root:${PASSWORD:-apkdev}" | chpasswd  
+echo "apkdev:${PASSWORD:-apkdev}" | chpasswd
+
+# move to /config
+cd /config
+
+echo -e "---\n[abuild]\tSetting up Alpine APK signing keys and config\n---"
+
+pkey=$(find /config/.abuild/ -maxdepth 1 -name "*.rsa")
+
+if ! [[ -d /config/.abuild ]] || ! [[ -f $pkey ]]
+then 
+    echo "---\n[abuild]\tKeys folder wasn't attached. Creating new ones.\n---"
+    mkdir -p /config/.abuild
+    abuild-keygen -nq
+    pkey=$(find /root/.abuild/ -maxdepth 1 -name "*.rsa")
+    cp ${pkey}.pub /etc/apk/keys
+    pfile=$(echo ${pkey} | sed 's/\// /g' | awk '{print $NF}')
+
+    mv "${pkey}"  "/config/.abuild/${EMAIL}${pfile}"
+    mv "${pkey}.pub" "/config/.abuild/${EMAIL}${pfile}.pub"
+fi
+
+echo -e "---\n[abuild]\tSetting up Alpine abuild config file\n---"
+
+
+if ! [[ -f /config/.abuild/abuild.conf ]]
+then
+    cat << EOF > /config/.abuild/abuild.conf
+USE_COLORS=1
+REPODEST=/config/build/
+PACKAGER="${NAME} <${EMAIL}>"
+MAINTAINER="${NAME} <${EMAIL}>"
+PACKAGER_PRIVKEY=$(find /config/.abuild/ -maxdepth 1 -name "*.rsa")
+EOF
+fi
+
+# pass ownership of /config to user
+chown -R apkdev:apkdev /config
+
+echo -e "---\n[tmux]\t\tLaunching a new session ('dev'); attach with $ tdev \n---"
+
+# start a tmux session as the user
+su apkdev -c "tmux new-session -A -s dev \; detach "
+
+echo -e "---\n[sshd]\t\tLaunching SSH server with configured password, connect with ssh apkdev@localhost -p {PORT} \n---"
+
+# start SSH service for persistent tmux
+/usr/sbin/sshd -D
