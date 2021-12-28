@@ -19,7 +19,7 @@ RUN usermod -s /bin/zsh root \
   && mkdir -p /config  \
   && groupmod -g 1000 users \
   && useradd -u 1005 -U -d /config -s /bin/zsh apkdev \
-  && usermod -G users apkdev \
+  && usermod -G abuild apkdev \
   && echo 'apkdev ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 RUN sed -ie 's/#Port 22/Port 22/g' /etc/ssh/sshd_config \
