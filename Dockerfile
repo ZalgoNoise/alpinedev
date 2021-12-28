@@ -6,6 +6,7 @@ RUN apk add --update --no-cache \
     bash openjdk11 libarchive zip unzip g++ coreutils git \
     linux-headers protobuf python2 gcc bison flex texinfo gawk \
     gmp-dev mpfr-dev mpc1-dev zlib-dev libucontext-dev \
+    sudo \
     gcc-gnat-bootstrap isl-dev \
     tmux zsh curl tzdata shadow procps ca-certificates openssh-server 
 
@@ -18,7 +19,8 @@ RUN usermod -s /bin/zsh root \
   && mkdir -p /config  \
   && groupmod -g 1000 users \
   && useradd -u 1005 -U -d /config -s /bin/zsh apkdev \
-  && usermod -G users apkdev
+  && usermod -G users apkdev \
+  && echo 'apkdev ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 RUN sed -ie 's/#Port 22/Port 22/g' /etc/ssh/sshd_config \
   && /usr/bin/ssh-keygen -A \

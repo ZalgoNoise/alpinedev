@@ -49,6 +49,8 @@ PACKAGER_PRIVKEY=$(find /config/.abuild/ -maxdepth 1 -name "*.rsa")
 EOF
 fi
 
+cp /config/.abuild/abuild.conf /etc/abuild.conf
+
 # pass ownership of /config to user
 chown -R apkdev:apkdev /config
 
