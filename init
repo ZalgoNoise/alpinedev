@@ -32,6 +32,9 @@ then
     mv "${pkey}.pub" "/config/.abuild/${EMAIL}${pfile}.pub"
 fi
 
+pubkey=$(find /config/.abuild/ -maxdepth 1 -name "*.rsa.pub")
+cp ${pubkey} /etc/apk/keys
+
 echo -e "---\n[abuild]\tSetting up Alpine abuild config file\n---"
 
 
